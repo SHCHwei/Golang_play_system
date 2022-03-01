@@ -1,0 +1,5 @@
+{
+	"driver" : "mysql",
+	"dbname" : "m00000",
+	"user" : "root"
+}
