@@ -38,15 +38,37 @@ func main(){
     //app := iris.New()
     app := iris.Default()
 
-    
-    //傳入index方法
-    app.Get("/",index)
+    crs := func(ctx iris.Context) {
+        ctx.Header("Access-Control-Allow-Origin", "*")
+        ctx.Header("Access-Control-Allow-Credentials", "true")
 
-    app.Get("/json", func(ctx iris.Context) {
+        if ctx.Method() == iris.MethodOptions {
+            ctx.Header("Access-Control-Methods",
+                "GET, POST, PUT, PATCH, DELETE")
+
+            ctx.Header("Access-Control-Allow-Headers",
+                "Access-Control-Allow-Origin,Content-Type")
+
+            ctx.Header("Access-Control-Max-Age",
+                "86400")
+
+            ctx.StatusCode(iris.StatusNoContent)
+            return
+        }
+
+        ctx.Next()
+    }
+
+    app.UseRouter(crs)
+
+    //傳入index方法
+    app.Get("/", crs, index)
+
+    app.Get("/json", crs, func(ctx iris.Context) {
         ctx.JSON(iris.Map{"message": "hello", "status": iris.StatusOK})
     })
 
-    app.Get("/json_secure", func(ctx iris.Context) {
+    app.Get("/json_secure", crs, func(ctx iris.Context) {
         response := []string{"val1", "val2", "val3"}
         options := iris.JSON{Indent: ""}
         ctx.JSON(response, options)
@@ -89,9 +111,6 @@ func index(ctx iris.Context){
 
     //從interface 中取出資料
     fmt.Println(list.Teams[0])
-
-
-    //data := dbcon.DBT()
 
 
     //回傳json型態
