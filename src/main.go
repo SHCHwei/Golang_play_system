@@ -1,24 +1,15 @@
 package main
 
 import (
-    "github.com/kataras/iris/v12"   
-    "io/ioutil"
-    "os"
-    "log"
-    "encoding/json"
     "fmt"
+    "log"
+    "net/http"
+    "encoding/json"
 )
 
-type webConfig struct {
-	Driver string `json:"driver"`
-	DBName string `json:"dbname"`
-	User   string `json:"user"`
-}
-
-var WebConfig webConfig
 
 
-
+/*
 type Team struct {
 	Title string `json:"title"`
 	Team string `json:"team"`
@@ -30,90 +21,51 @@ type Teams struct {
 }
 
 var TeamList map[string] interface{}
+*/
 
-func main(){
 
-    // iris.New() 和 iris.Default()
-    // iris.New() -> Creates an iris application without any middleware by default 
-    //app := iris.New()
-    app := iris.Default()
-
-    crs := func(ctx iris.Context) {
-        ctx.Header("Access-Control-Allow-Origin", "*")
-        ctx.Header("Access-Control-Allow-Credentials", "true")
-
-        if ctx.Method() == iris.MethodOptions {
-            ctx.Header("Access-Control-Methods",
-                "GET, POST, PUT, PATCH, DELETE")
-
-            ctx.Header("Access-Control-Allow-Headers",
-                "Access-Control-Allow-Origin,Content-Type")
-
-            ctx.Header("Access-Control-Max-Age",
-                "86400")
-
-            ctx.StatusCode(iris.StatusNoContent)
-            return
-        }
-
-        ctx.Next()
-    }
-
-    app.UseRouter(crs)
-
-    //傳入index方法
-    app.Get("/", crs, index)
-
-    app.Get("/json", crs, func(ctx iris.Context) {
-        ctx.JSON(iris.Map{"message": "hello", "status": iris.StatusOK})
-    })
-
-    app.Get("/json_secure", crs, func(ctx iris.Context) {
-        response := []string{"val1", "val2", "val3"}
-        options := iris.JSON{Indent: ""}
-        ctx.JSON(response, options)
-    })
-
-    app.Listen(":8099")
+type Profile struct {
+	Name		string
+	Hobbies []string
 }
 
-func index(ctx iris.Context){
+func handler(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Hi there, I love %s!", "marray")
+}
 
-    jsonFile, err := os.Open("team.json")
-    jsonFile2, err := os.Open("team2.json")
+func main(){
+    http.HandleFunc("/", index)
+    http.HandleFunc("/json", handler)
+
+    log.Fatal(http.ListenAndServe(":8099", nil))
+}
+
+func index(w http.ResponseWriter, r *http.Request) {
+/*
+    jsonFile, err := os.Open("team2.json")
 
     if err != nil {
         log.Fatal(err) // if err exists log fetal and exit
     }
 
     defer jsonFile.Close()
-    defer jsonFile2.Close()
 
     byteValue, _ := ioutil.ReadAll(jsonFile)
-    byteValue2, _ := ioutil.ReadAll(jsonFile2)
 
     //將匯入的文字直接解析到 interface，interface{} 可以用來儲存任意資料型別的物件
 	json.Unmarshal([]byte(byteValue), &TeamList)
+*/
 
+	profile := Profile{"Alex", []string{"snowboarding", "programming"}}
 
-    var list Teams
+	js, err := json.Marshal(profile)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    // Golang中字串更改，需要先轉換成[]byte 型別 如範例一
-    json.Unmarshal([]byte(byteValue2), &list)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 
-    /*  範例一 : 將hello 切割 string 變成 byte型別的slice
-        s := "hello"
-        c := []byte(s)  // 將字串 s 轉換為 []byte 型別
-        c[0] = 'c'
-        s2 := string(c)  // 再轉換回 string 型別
-    */
-
-
-    //從interface 中取出資料
-    fmt.Println(list.Teams[0])
-
-
-    //回傳json型態
-    ctx.JSON(list)
 
 }
