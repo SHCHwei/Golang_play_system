@@ -1,12 +1,11 @@
 package main
 
 import (
-    "github.com/kataras/iris/v12"   
+    "github.com/kataras/iris/v12"
     "io/ioutil"
     "os"
     "log"
     "encoding/json"
-    "fmt"
 )
 
 type webConfig struct {
@@ -34,30 +33,8 @@ var TeamList map[string] interface{}
 func main(){
 
     // iris.New() 和 iris.Default()
-    // iris.New() -> Creates an iris application without any middleware by default 
+    // iris.New() -> Creates an iris application without any middleware by default
     //app := iris.New()
-    app := iris.Default()
-
-    crs := func(ctx iris.Context) {
-        ctx.Header("Access-Control-Allow-Origin", "*")
-        ctx.Header("Access-Control-Allow-Credentials", "true")
-
-        if ctx.Method() == iris.MethodOptions {
-            ctx.Header("Access-Control-Methods",
-                "GET, POST, PUT, PATCH, DELETE")
-
-            ctx.Header("Access-Control-Allow-Headers",
-                "Access-Control-Allow-Origin,Content-Type")
-
-            ctx.Header("Access-Control-Max-Age",
-                "86400")
-
-            ctx.StatusCode(iris.StatusNoContent)
-            return
-        }
-
-        ctx.Next()
-    }
 
     app.UseRouter(crs)
 
@@ -65,6 +42,13 @@ func main(){
     app.Get("/", crs, index)
 
     app.Get("/json", crs, func(ctx iris.Context) {
+
+
+    //傳入index方法
+    app.Post("/",index)
+    app.Get("/",index)
+
+    app.Post("/json", func(ctx iris.Context) {
         ctx.JSON(iris.Map{"message": "hello", "status": iris.StatusOK})
     })
 
@@ -78,6 +62,10 @@ func main(){
 }
 
 func index(ctx iris.Context){
+
+    ctx.Header("Access-Control-Allow-Origin", "*")
+    ctx.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS")
+    ctx.Header("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization")
 
     jsonFile, err := os.Open("team.json")
     jsonFile2, err := os.Open("team2.json")
@@ -112,6 +100,7 @@ func index(ctx iris.Context){
     //從interface 中取出資料
     fmt.Println(list.Teams[0])
 
+    //data := dbcon.DBT()
 
     //回傳json型態
     ctx.JSON(list)
