@@ -18,9 +18,10 @@ func main(){
 */
     http.HandleFunc("/showList", handlers.ShowList)
     http.HandleFunc("/addTeam", handlers.AddTeam)
+    /*
     http.HandleFunc("/deleteTeam", handlers.DeleteTeam)
     http.HandleFunc("/updateTeam", handlers.UpdateTeam)
-
+*/
 
     log.Fatal(http.ListenAndServe(":8099", nil))
 }

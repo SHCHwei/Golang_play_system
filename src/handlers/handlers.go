@@ -7,21 +7,19 @@ import (
     "net/http"
     "encoding/json"
     "io/ioutil"
+    "time"
 )
 
 
 type Team struct {
 	Title string `json:"title"`
 	Team string `json:"team"`
-	How_many int `json:"how_many"`
-	Time string `json:time`
+	How_many string `json:"how_many"`
 }
 
 type Teams struct {
     Teams []Team
 }
-
-var TeamList map[string] interface{}
 
 
 func ShowList(w http.ResponseWriter, r *http.Request) {
@@ -35,34 +33,42 @@ func ShowList(w http.ResponseWriter, r *http.Request) {
 
     defer jsonFile.Close()
 
-    //將匯入的文字直接解析到 interface，interface{} 可以用來儲存任意資料型別的物件
-	json.Unmarshal([]byte(play), &TeamList)
-
     w.Write(play)
 
 }
 
 func AddTeam(w http.ResponseWriter, r *http.Request) {
 
+    //建立新隊伍
+    newTeam :=  []byte([{ 'title':r.FormValue("title"), 'team': r.FormValue("team"), 'how_many': r.FormValue("how_many"), 'time': time.Now().Unix()}])
+    fmt.Println(newTeam)
 
-    if err := r.ParseForm(); err != nil {
-    	fmt.Fprintf(w, "ParseForm() err: %v", err)
+
+    //讀取全部隊伍
+    jsonFile, err := os.Open("team2.json")
+    play, err := ioutil.ReadAll(jsonFile)
+
+    if err != nil {
+        log.Fatal(err) // if err exists log fetal and exit
     }
 
-    for _,value := range r.ParseForm{
-        fmt.Fprintf(value)
-    }
+    defer jsonFile.Close()
 
+    var playTeam []Teams
+	json.Unmarshal(play, &playTeam)
+
+    //新舊合併
+    //append(play, newTeam)
+    w.Write(play)
 
 }
 
-
+/*
 
 func DeleteTeam(w http.ResponseWriter, r *http.Request) {
 
-
     if err := r.ParseForm(); err != nil {
-    	fmt.Fprintf(w, "ParseForm() err: %v", err)
+    	fmt.Println("ParseForm() err:")
     }
 
 }
@@ -77,3 +83,4 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request) {
 
 
 }
+*/
